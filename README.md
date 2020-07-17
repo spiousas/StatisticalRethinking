@@ -1,0 +1,2 @@
+# StatisticalRethinking
+Following the book
