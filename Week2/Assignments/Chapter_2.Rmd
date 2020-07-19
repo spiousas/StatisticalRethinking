@@ -20,6 +20,8 @@ library(tidyverse)
 3. Pr(Monday|rain)
 4. Pr(rain, Monday) / Pr(Monday) **X**
 
+**SOLUTION**
+
 Given that *Pr(rain, Monday) = Pr(rain|Monday) Pr(Monday)*, then both expressions (2 and 4) are equivalnet.
 
 **2E2.** Which of the following statements corresponds to the expression: Pr(Monday|rain)?
@@ -37,7 +39,13 @@ Given that *Pr(rain, Monday) = Pr(rain|Monday) Pr(Monday)*, then both expression
 4. Pr(rain|Monday) Pr(Monday)/ Pr(rain)
 5. Pr(Monday|rain) Pr(rain) / Pr(Monday)
 
-Using Bayes rule (*P(A|B) = P(B|A) P(A) / P(B)*) we can rewrite *Pr(Monday|rain)* as *Pr(rain|Monday) Pr(Monday)  / Pr(rain)*.
+**SOLUTION**
+
+Using [Bayes Theorem](https://en.wikipedia.org/wiki/Bayes%27_theorem) (*P(A|B) = P(B|A) P(A) / P(B)*) we can rewrite *Pr(Monday|rain)* as *Pr(rain|Monday) Pr(Monday)  / Pr(rain)*.
+
+**2E4.** The Bayesian statistician Bruno de Finetti (1906–1985) began his book on probability theory with the declaration: “PROBABILITY DOES NOT EXIST.” The capitals appeared in the original, so I imagine de Finetti wanted us to shout this statement. What he meant is that probability is a device for describing uncertainty from the perspective of an observer with limited knowledge; it has no objective reality. Discuss the globe tossing example from the chapter, in light of this statement. What does it mean to say “the probability of water is 0.7”?
+
+Well... let's keep this open.
 
 ## Medium 
 
@@ -48,6 +56,8 @@ prior for p.
 1. W, W, W
 2. W, W, W, L
 3. L, W, W, L, W, W, W
+
+**SOLUTION**
 
 ```{r 2M1.1, echo=FALSE, fig.height = 4, fig.width = 6, fig.align = "left"}
 grid_steps <- 100
@@ -65,22 +75,71 @@ data2M1 <-
    mutate(posterior       = unstd_posterior / sum(unstd_posterior))
 
 ggplot(data = data2M1, aes(x = p_grid, y = posterior, colour = Observation)) +
-geom_line() +
-labs(x = "Proportion water",
-     y = "Density") +
-theme_minimal() + 
-ggtitle("Posteriors for the three observations")
+  geom_line() +
+  labs(x = "Proportion water",
+       y = "Density") +
+  theme_minimal() + 
+  ggtitle("Posteriors for the three observations")
 ```
 
 **2M2.** Now assume a prior for p that is equal to zero when p < 0.5 and is a positive constant when
 p ≥ 0.5. Again compute and plot the grid approximate posterior distribution for each of the sets of
 observations in the problem just above.
 
+**SOLUTION**
+
+```{r 2M1.2, echo=FALSE, fig.height = 4, fig.width = 6, fig.align = "left"}
+grid_steps <- 100
+data2M2 <-
+ tibble(p_grid            = rep(seq(from = 0, to = 1, length.out = grid_steps), 3),
+        prior             = if_else(p_grid<0.5, 0, 1) / (grid_steps/2),
+        waters            = c(rep(3, grid_steps), rep(3, grid_steps), rep(5, grid_steps)),
+        sizes             = c(rep(3, grid_steps), rep(4, grid_steps), rep(7, grid_steps)),
+        Observation       = c(rep("W, W, W", grid_steps), 
+                              rep("W, W, W, L", grid_steps), 
+                              rep("L, W, W, L, W, W, W", grid_steps))) %>%                      
+   group_by(Observation) %>% 
+   mutate(likelihood      = dbinom(waters, size = sizes , prob = p_grid)) %>%  
+   mutate(unstd_posterior = likelihood * prior) %>%                  
+   mutate(posterior       = unstd_posterior / sum(unstd_posterior))
+
+ggplot(data = data2M2, aes(x = p_grid, y = posterior, colour = Observation)) +
+  geom_line(aes(y = prior), linetype = "dashed", colour = "grey") +
+  geom_line() +
+  labs(x = "Proportion water",
+       y = "Density") +
+  theme_minimal() + 
+  ggtitle("Poteriors with a step prior")
+```
+
 **2M3.** Suppose there are two globes, one for Earth and one for Mars. The Earth globe is 70% covered
 in water. The Mars globe is 100% land. Further suppose that one of these globes—you don’t know
 which—was tossed in the air and produced a “land” observation. Assume that each globe was equally
 likely to be tossed. Show that the posterior probability that the globe was the Earth, conditional on
 seeing “land” (Pr(Earth|land)), is 0.23.
+
+**SOLUTION**
+
+Since there is not know bias:
+
+pr(Earth) = 0.5<br/>
+pr(Mars) = 1 - Pr(Earth) = 0.5
+
+And, as there is 70% water over the earth surface:
+
+pr(Land|Earth) = 0.3<br/>
+pr(Water|Earth) = 0.7
+
+and 0% over martian surface:
+
+pr(Land|Mars) = 1<br/>
+pr(Water|Mars) = 0
+
+Then, using [Bayes Theorem](https://en.wikipedia.org/wiki/Bayes%27_theorem)
+
+pr(Earth|Land) = pr(Land|Earth) pr(Earth) / pr(Land)<br/>
+pr(Earth|Land) = 0.3 0.5/0.65<br/>
+**pr(Earth|Land) = 0.23**
 
 **2M4.** Suppose you have a deck with only three cards. Each card has two sides, and each side is either
 black or white. One card has two black sides. The second card has one black and one white side. The
@@ -91,9 +150,68 @@ also black is 2/3. Use the counting method (Section 2 of the chapter) to approac
 means counting up the ways that each card could produce the observed data (a black side facing up
 on the table).
 
+**SOLUTION**
+
+We will call the cards BB, BW and WW and, since we do not have any bias for picking a given card, the probabilities of picking each of them is the same:
+p(BB) = p(BW) = p(WW) = 1/3
+
+*Forking paths:* 
+
+You pick a card place it on the desk and the upward face is black. It could be (1) the card is black on both sides and you are showing (let's say) side one, (2) the card is black on both sides and you are showing side two, or (3) the card is white on the other side. One out of three of this posssible paths is consistent with the card being black on both sides and that is why the probability of the card being black on both sides given that the onward face is black is two out of three (*p(BB|B)=2/3*).
+
+*Using Bayes theorem:*
+
+The probability of getting a BB card given that the side facing upwards is black can be rewritten as
+
+p(BB|B) = p(B|BB) p(BB) / p(B)
+
+Where we know that p(BB) = 1/3
+
+The conditional probabilities can be defined if we have in mind the forking paths. Theres are two ways to get a black side with a BB card, one way with a BW card and zero ways with a WW card. So, if the card is BB, the probability of getting a B side is 1 while if the card is CW this goes down to 1/2.
+
+p(B|BB) = 1<br/>
+p(B|BW) = 1/2<br/>
+p(B|WW) = 0
+
+OK, so now the only thing we should deal with before being able to calculate the probability is p(B). P(B) is basically all the possible combinations in which we could obtain a black card and can be calculated as:
+
+p(B) = p(B|BB) p(BB) + p(B|BW) p(BW) + p(B|WW) p(WW)<br/>
+p(B) = 1 1/3 + 1/2 1/3 + 0 1/3<br/>
+p(B) = 1/2
+
+Then, putting all together:
+
+p(BB|B) = p(B|BB) p(BB) / p(B)<br/>
+p(BB|B) = 1 1/3 / (1/2)<br/>
+**p(BB|B) = 2/3**
+
 **2M5.** Now suppose there are four cards: B/B, B/W, W/W, and another B/B. Again suppose a card is
 drawn from the bag and a black side appears face up. Again calculate the probability that the other
 side is black.
+
+**SOLUTION**
+
+*Forking paths:* 
+
+Now the possible ways in which the card could be BB are four (side one and two of each BB card) while the ways in which the card could be BW remains one. That is why the probability of the card being black on both sides given that the onward face is black is four out of five (*p(BB|B)=4/5*).
+
+*Using Bayes theorem:*
+
+Now what changes is the probabilty of picking a given card:
+p(BB) = 1/2<br/>
+p(BW) = p(WW) = 1/4
+
+and P(B) becomes:
+
+p(B) = p(B|BB) p(BB) + p(B|BW) p(BW) + p(B|WW) p(WW)<br/>
+p(B) = 1 1/2 + 1/2 1/4 + 0 1/4<br/>
+p(B) = 5/8
+
+Finally:
+
+p(BB|B) = p(B|BB) p(BB) / p(B)<br/>
+p(BB|B) = 1 1/2 / (5/8)<br/>
+**p(BB|B) = 4/5 = 0.8**
 
 **2M6.** Imagine that black ink is heavy, and so cards with black sides are heavier than cards with white
 sides. As a result, it’s less likely that a card with black sides is pulled from the bag. So again assume
@@ -102,9 +220,53 @@ for every way to pull the B/B card from the bag, there are 2 ways to pull the B/
 pull the W/W card. Again suppose that a card is pulled and a black side appears face up. Show that
 the probability the other side is black is now 0.5. Use the counting method, as before.
 
+**SOLUTION**
+
+*Forking paths:* 
+
+Now, in the long run, for each six draws there will be one BB card, two BW cards and three WW cards. This means that out seeing a black side facing upwards is compatible with four possible configurations (the two sides of BB plus the two different draws of BW). Out of this four possible configurations only two are compatible with the card begin BB, giving us a probability of having a BB card of two out of four (*p(BB|B)=1/2*).
+
+*Using Bayes theorem:*
+
+Again what changes is the probabilty of picking a given card:
+p(BB) = 1/6<br/>
+p(BW) = 2/6 = 1/3<br/>
+p(WW) = 3/6 = 1/2
+
+and P(B) becomes:
+
+p(B) = p(B|BB) p(BB) + p(B|BW) p(BW) + p(B|WW) p(WW)<br/>
+p(B) = 1 1/6 + 1/2 1/3 + 0 1/2<br/>
+p(B) = 2/6 = 1/3
+
+Finally:
+
+p(BB|B) = p(B|BB) p(BB) / p(B)<br/>
+p(BB|B) = 1 1/6 / (1/3)<br/>
+**p(BB|B) = 1/2 = 0.5**
+
 **2M7.** Assume again the original card problem, with a single card showing a black side face up. Before
 looking at the other side, we draw another card from the bag and lay it face up on the table. The face
 that is shown on the new card is white. Show that the probability that the first card, the one showing
 a black side, has black on its other side is now 0.75. Use the counting method, if you can. Hint: Treat
 this like the sequence of globe tosses, counting all the ways to see each observation, for each possible
 first card.
+
+**SOLUTION**
+
+Let's count! First, if the first card shows a black face upwards we cab be either with a BB or a BW cardon the table. The probability of being BB is two out of three (two sides of BB and one side of BW). Next, let's assume we picked the BB, then we have six possible combinations that are compatible:
+
+side one of BB -> white side of BW<br/>
+side one of BB -> side one of WW<br/>
+side one of BB -> side two of WW
+
+side two of BB -> white side of BW<br/>
+side two of BB -> side one of WW<br/>
+side two of BB -> side two of WW
+
+And, on the other hand, if we picked the BW card, thete is only two possible second draws that are compatible with the sequence black-white:
+
+black side of BW -> side one of WW<br/>
+black side of BW -> side two of WW
+
+If we count, we can add up the probability of being BB with the sequence of balc and white sides facing upwards (and no replacement) is 6 out of 8, or 75%.
