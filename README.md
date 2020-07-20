@@ -1,4 +1,4 @@
-## Welcome to the solution to the assignments by Deportivo Bayesiano
+## Welcome to the solution of the assignments by Deportivo Bayesiano
 
 We are a group of scientists from Buenos Aires Argentina that are interested on Statistical Modelling for the behavioural sciences.
 
