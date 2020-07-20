@@ -59,7 +59,7 @@ prior for p.
 
 **SOLUTION**
 
-```{r 2M1.1, echo=FALSE, fig.height = 4, fig.width = 6, fig.align = "left"}
+```{r 2M1.1, fig.height = 4, fig.width = 6, fig.align = "left"}
 grid_steps <- 100
 data2M1 <-
  tibble(p_grid            = rep(seq(from = 0, to = 1, length.out = grid_steps), 3),
@@ -88,7 +88,7 @@ observations in the problem just above.
 
 **SOLUTION**
 
-```{r 2M1.2, echo=FALSE, fig.height = 4, fig.width = 6, fig.align = "left"}
+```{r 2M1.2, fig.height = 4, fig.width = 6, fig.align = "left"}
 grid_steps <- 100
 data2M2 <-
  tibble(p_grid            = rep(seq(from = 0, to = 1, length.out = grid_steps), 3),
