@@ -92,3 +92,40 @@ solution <-
 
 print(paste0("The posterior probability that lies above p=0.8 is ", solution$sum))
 ```
+
+**3E5.** 20% of the posterior probability lies above which value of p?
+
+**SOLUTION**
+```{r 3E5}
+solution <- 
+  samples %>% 
+  filter(p_grid > .2 & p_grid < .8) %>% 
+  summarise(sum = n() / n_samples)
+
+print(paste0("The posterior probability that lies above p=0.8 is ", solution$sum))
+```
+
+**3E6.** Which values of p contain the narrowest interval equal to 66% of the posterior probability?
+
+**SOLUTION**
+```{r 3E6}
+solution <- 
+  samples %>% 
+  filter(p_grid > .2 & p_grid < .8) %>% 
+  summarise(sum = n() / n_samples)
+
+print(paste0("The posterior probability that lies above p=0.8 is ", solution$sum))
+```
+
+**3E7.** Which values of p contain 66% of the posterior probability, assuming equal posterior probability
+both below and above the interval?
+
+**SOLUTION**
+```{r 3E7}
+solution <- 
+  samples %>% 
+  filter(p_grid > .2 & p_grid < .8) %>% 
+  summarise(sum = n() / n_samples)
+
+print(paste0("The posterior probability that lies above p=0.8 is ", solution$sum))
+```

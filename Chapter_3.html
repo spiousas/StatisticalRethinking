@@ -168,6 +168,33 @@ samples &lt;-
 
 <span class="kw">print</span>(<span class="kw">paste0</span>(<span class="st">&quot;The posterior probability that lies above p=0.8 is &quot;</span>, solution<span class="op">$</span>sum))</code></pre></div>
 <pre><code>## [1] &quot;The posterior probability that lies above p=0.8 is 0.8737&quot;</code></pre>
+<p><strong>3E5.</strong> 20% of the posterior probability lies above which value of p?</p>
+<p><strong>SOLUTION</strong></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">solution &lt;-<span class="st"> </span>
+<span class="st">  </span>samples <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">filter</span>(p_grid <span class="op">&gt;</span><span class="st"> </span>.<span class="dv">2</span> <span class="op">&amp;</span><span class="st"> </span>p_grid <span class="op">&lt;</span><span class="st"> </span>.<span class="dv">8</span>) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">summarise</span>(<span class="dt">sum =</span> <span class="kw">n</span>() <span class="op">/</span><span class="st"> </span>n_samples)
+
+<span class="kw">print</span>(<span class="kw">paste0</span>(<span class="st">&quot;The posterior probability that lies above p=0.8 is &quot;</span>, solution<span class="op">$</span>sum))</code></pre></div>
+<pre><code>## [1] &quot;The posterior probability that lies above p=0.8 is 0.8737&quot;</code></pre>
+<p><strong>3E6.</strong> Which values of p contain the narrowest interval equal to 66% of the posterior probability?</p>
+<p><strong>SOLUTION</strong></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">solution &lt;-<span class="st"> </span>
+<span class="st">  </span>samples <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">filter</span>(p_grid <span class="op">&gt;</span><span class="st"> </span>.<span class="dv">2</span> <span class="op">&amp;</span><span class="st"> </span>p_grid <span class="op">&lt;</span><span class="st"> </span>.<span class="dv">8</span>) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">summarise</span>(<span class="dt">sum =</span> <span class="kw">n</span>() <span class="op">/</span><span class="st"> </span>n_samples)
+
+<span class="kw">print</span>(<span class="kw">paste0</span>(<span class="st">&quot;The posterior probability that lies above p=0.8 is &quot;</span>, solution<span class="op">$</span>sum))</code></pre></div>
+<pre><code>## [1] &quot;The posterior probability that lies above p=0.8 is 0.8737&quot;</code></pre>
+<p><strong>3E7.</strong> Which values of p contain 66% of the posterior probability, assuming equal posterior probability both below and above the interval?</p>
+<p><strong>SOLUTION</strong></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">solution &lt;-<span class="st"> </span>
+<span class="st">  </span>samples <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">filter</span>(p_grid <span class="op">&gt;</span><span class="st"> </span>.<span class="dv">2</span> <span class="op">&amp;</span><span class="st"> </span>p_grid <span class="op">&lt;</span><span class="st"> </span>.<span class="dv">8</span>) <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">summarise</span>(<span class="dt">sum =</span> <span class="kw">n</span>() <span class="op">/</span><span class="st"> </span>n_samples)
+
+<span class="kw">print</span>(<span class="kw">paste0</span>(<span class="st">&quot;The posterior probability that lies above p=0.8 is &quot;</span>, solution<span class="op">$</span>sum))</code></pre></div>
+<pre><code>## [1] &quot;The posterior probability that lies above p=0.8 is 0.8737&quot;</code></pre>
 </div>
 </section>
 
