@@ -1,0 +1,94 @@
+---
+title: "Statistical rethinking assignements - Chapter 3"
+author: "Deportivo Bayes"
+date: "July 24, 2020"
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+#library(brms)
+```
+
+##Easy
+These problems use the samples from the posterior distribution for the globe tossing example.
+This code will give you a specific set of samples, so that you can check your answers exactly
+
+```{r Easy}
+length.out <- 1001
+n_water <- 6
+n_trials  <- 9
+
+d <-
+  tibble(p_grid     = seq(from = 0, to = 1, length.out = length.out),
+         prior      = 1) %>% 
+  mutate(likelihood = dbinom(n_water, size = n_trials, prob = p_grid)) %>% 
+  mutate(posterior  = (likelihood * prior) / sum(likelihood * prior))
+
+# How many samples would you like?
+n_samples <- 1e4
+
+# Make it reproducible
+set.seed(3)
+
+# Draw samples
+samples <-
+  d %>% 
+  sample_n(size = n_samples, weight = posterior, replace = T)
+```
+
+**3E1.** How much posterior probability lies below p = 0.2?
+
+**SOLUTION**
+
+```{r 3E1}
+solution <- 
+  samples %>% 
+  filter(p_grid < .2) %>% 
+  summarise(sum = n() / n_samples)
+
+print(paste0("The posterior probability that lies below p=0.2 is ", solution$sum))
+```
+
+**3E2.** How much posterior probability lies above p = 0.8?
+
+**SOLUTION**
+
+```{r 3E2}
+solution <- 
+  samples %>% 
+  filter(p_grid > .8) %>% 
+  summarise(sum = n() / n_samples)
+
+print(paste0("The posterior probability that lies above p=0.8 is ", solution$sum))
+```
+
+**3E3.** How much posterior probability lies between p = 0.2 and p = 0.8?
+
+**SOLUTION**
+
+```{r 3E3}
+solution <- 
+  samples %>% 
+  filter(p_grid > .2 & p_grid < .8) %>% 
+  summarise(sum = n() / n_samples)
+
+print(paste0("The posterior probability that lies above p=0.8 is ", solution$sum))
+```
+
+**3E4.** 20% of the posterior probability lies below which value of p?
+
+**SOLUTION**
+
+```{r 3E4}
+solution <- 
+  samples %>% 
+  filter(p_grid > .2 & p_grid < .8) %>% 
+  summarise(sum = n() / n_samples)
+
+print(paste0("The posterior probability that lies above p=0.8 is ", solution$sum))
+```
