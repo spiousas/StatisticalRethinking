@@ -11,7 +11,7 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
-#library(brms)
+library(rethinking)
 ```
 
 ##Easy
@@ -111,10 +111,11 @@ print(paste0("The posterior probability that lies above p=0.8 is ", solution$sum
 ```{r 3E6}
 solution <- 
   samples %>% 
-  filter(p_grid > .2 & p_grid < .8) %>% 
-  summarise(sum = n() / n_samples)
+  select(p_grid) %>% 
+  pull() %>% 
+  HPDI(prob = 0.66)
 
-print(paste0("The posterior probability that lies above p=0.8 is ", solution$sum))
+print(paste0("The values of p between ", round(solution[1],2), " and ", round(solution[2],2), " contain the narrowest interval equal to 66% of the posterior probability "))
 ```
 
 **3E7.** Which values of p contain 66% of the posterior probability, assuming equal posterior probability
@@ -124,8 +125,128 @@ both below and above the interval?
 ```{r 3E7}
 solution <- 
   samples %>% 
-  filter(p_grid > .2 & p_grid < .8) %>% 
-  summarise(sum = n() / n_samples)
+  select(p_grid) %>% 
+  pull() %>% 
+  PI(prob = 0.66)
 
-print(paste0("The posterior probability that lies above p=0.8 is ", solution$sum))
+print(paste0("The values of p between ", round(solution[1],2), " and ", round(solution[2],2), " contain 66% of the posterior probability "))
 ```
+
+##Medium
+**3M1.** Suppose the globe tossing data had turned out to be 8 water in 15 tosses. Construct the posterior
+distribution, using grid approximation. Use the same flat prior as before.
+
+**SOLUTION**
+```{r 3M1, fig.height = 4, fig.width = 6, fig.align = "left"}
+length.out <- 1001
+n_water <- 8
+n_trials  <- 15
+
+data3M1 <-
+  tibble(p_grid     = seq(from = 0, to = 1, length.out = length.out),
+         prior      = 1) %>% 
+  mutate(likelihood = dbinom(n_water, size = n_trials, prob = p_grid)) %>% 
+  mutate(posterior  = (likelihood * prior) / sum(likelihood * prior))
+
+ggplot(data = data3M1, 
+       aes(x = p_grid, y = posterior)) +
+  geom_line() +
+  labs(x = "Proportion water",
+       y = "Density") +
+  theme_minimal() + 
+  ggtitle("Poteriors with 8 waters in 15 tosses")
+```
+
+**3M2.** Draw 10,000 samples from the grid approximation from above. Then use the samples to calculate
+the 90% HPDI for p.
+
+**SOLUTION**
+```{r 3M2, fig.height = 4, fig.width = 6, fig.align = "left"}
+# How many samples would you like?
+n_samples <- 1e4
+
+# Make it reproducible
+set.seed(3)
+
+# Draw samples
+samples3M2 <-
+  data3M1 %>% 
+  sample_n(size = n_samples, weight = posterior, replace = T)
+
+solution <- 
+  samples3M2 %>% 
+  select(p_grid) %>% 
+  pull() %>% 
+  HPDI(prob = 0.90)
+
+print(paste0("The values of p between ", round(solution[1],2), " and ", round(solution[2],2), " contain the narrowest interval equal to 66% of the posterior probability "))
+
+ggplot(data = samples3M2, 
+       aes(x = p_grid)) +
+  geom_density(fill = "red", 
+               alpha = .3) +
+  geom_ribbon(data = samples3M2 %>% filter(p_grid < solution[2] & p_grid > solution[1]),
+              aes(ymin = 0, ymax = posterior*n_samples/10),
+              fill = "red", 
+              alpha = .7) +
+  geom_line(data = data3M1, 
+            aes(x = p_grid, y = posterior*n_samples/10), 
+            linetype = "dashed") +
+  labs(x = "Proportion water (p)",
+       y = "Density") +
+  theme_minimal() + 
+  ggtitle("HPDI of the sample distribution with 8 waters in 15 tosses")
+```
+
+**3M3.** Construct a posterior predictive check for this model and data. This means simulate the distribution
+of samples, averaging over the posterior uncertainty in p. What is the probability of observing
+8 water in 15 tosses?
+
+**SOLUTION**
+
+```{r 3M3, fig.height = 4, fig.width = 6, fig.align = "left"}
+n <- 1001
+n_success <- 8
+n_trials  <- 15
+
+Data3M3 <-
+  tibble(p_grid     = seq(from = 0, to = 1, length.out = n),
+         # note we're still using a flat uniform prior
+         prior      = 1) %>% 
+  mutate(likelihood = dbinom(n_success, size = n_trials, prob = p_grid)) %>% 
+  mutate(posterior  = (likelihood * prior) / sum(likelihood * prior))
+
+
+# R code 3.26 #### 
+Data3M3 %>% 
+  ggplot(aes(x = p_grid)) +
+  geom_ribbon(aes(ymin = 0, ymax = posterior),
+              color = "grey67", fill = "grey67") +
+  geom_segment(data = . %>% 
+                 filter(p_grid %in% c(seq(from = .1, to = .9, by = .1), 3 / 10)),
+               aes(xend = p_grid,
+                   y = 0, yend = posterior, size = posterior),
+               color = "white", show.legend = F) +
+  geom_point(data = . %>%
+               filter(p_grid %in% c(seq(from = .1, to = .9, by = .1), 3 / 10)),
+             aes(y = posterior)) +
+  annotate(geom = "text", 
+           x = .08, y = .0025,
+           label = "Posterior predictive\ndistribution") +
+  scale_size_continuous(range = c(0, 1)) +
+  scale_x_continuous("probability of water", breaks = c(0:10) / 10) +
+  scale_y_continuous(NULL, breaks = NULL) +
+  theme_minimal()
+```
+
+**3M4.** Using the posterior distribution constructed from the new (8/15) data, now calculate the probability
+of observing 6 water in 9 tosses.
+
+**SOLUTION**
+
+**3M5.** Start over at 3M1, but now use a prior that is zero below p = 0.5 and a constant above p = 0.5.
+This corresponds to prior information that a majority of the Earth’s surface is water. Repeat each
+problem above and compare the inferences. What difference does the better prior make? If it helps,
+compare inferences (using both priors) to the true value p = 0.7.
+
+**SOLUTION**
