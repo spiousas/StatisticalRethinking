@@ -161,7 +161,9 @@ ggplot(data = data3M1,
 the 90% HPDI for p.
 
 **SOLUTION**
-```{r 3M2, fig.height = 4, fig.width = 6, fig.align = "left"}
+
+We will first calculate the HPDI
+```{r 3M2.1}
 # How many samples would you like?
 n_samples <- 1e4
 
@@ -180,7 +182,11 @@ solution <-
   HPDI(prob = 0.90)
 
 print(paste0("The values of p between ", round(solution[1],2), " and ", round(solution[2],2), " contain the narrowest interval equal to 66% of the posterior probability "))
+```
 
+And now we will plot the interval in along with the sampled distribution.
+
+```{r 3M2.2, fig.height = 4, fig.width = 6, fig.align = "left"}
 ggplot(data = samples3M2, 
        aes(x = p_grid)) +
   geom_density(fill = "red", 
@@ -204,40 +210,66 @@ of samples, averaging over the posterior uncertainty in p. What is the probabili
 
 **SOLUTION**
 
-```{r 3M3, fig.height = 4, fig.width = 6, fig.align = "left"}
-n <- 1001
-n_success <- 8
-n_trials  <- 15
+Let's plot again the posterior of **3M1.**:
 
-Data3M3 <-
-  tibble(p_grid     = seq(from = 0, to = 1, length.out = n),
-         # note we're still using a flat uniform prior
-         prior      = 1) %>% 
-  mutate(likelihood = dbinom(n_success, size = n_trials, prob = p_grid)) %>% 
-  mutate(posterior  = (likelihood * prior) / sum(likelihood * prior))
-
-
-# R code 3.26 #### 
-Data3M3 %>% 
-  ggplot(aes(x = p_grid)) +
-  geom_ribbon(aes(ymin = 0, ymax = posterior),
-              color = "grey67", fill = "grey67") +
-  geom_segment(data = . %>% 
+```{r 3M3.1, fig.height = 4, fig.width = 6, fig.align = "left"}
+ggplot(data = data3M1, 
+       aes(x = p_grid, y = posterior)) +
+  geom_line() +
+  labs(x = "Proportion water",
+       y = "Density") +
+    geom_segment(data = . %>% 
                  filter(p_grid %in% c(seq(from = .1, to = .9, by = .1), 3 / 10)),
-               aes(xend = p_grid,
-                   y = 0, yend = posterior, size = posterior),
-               color = "white", show.legend = F) +
-  geom_point(data = . %>%
-               filter(p_grid %in% c(seq(from = .1, to = .9, by = .1), 3 / 10)),
-             aes(y = posterior)) +
-  annotate(geom = "text", 
-           x = .08, y = .0025,
-           label = "Posterior predictive\ndistribution") +
-  scale_size_continuous(range = c(0, 1)) +
-  scale_x_continuous("probability of water", breaks = c(0:10) / 10) +
-  scale_y_continuous(NULL, breaks = NULL) +
-  theme_minimal()
+                 aes(xend = p_grid,
+                   y = 0, yend = posterior),
+               size = .3, linetype = "dashed", 
+               color = "black", show.legend = F) +
+  theme_minimal() + 
+  ggtitle("Posterior with 8 waters in 15 tosses")
 ```
+
+Now we have the posterior we should draw samples with each of the ten possible parameter values.
+
+```{r 3M3.2, fig.height = 4, fig.width = 6, fig.align = "left"}
+# Number of draws for each parameter value
+n_draws <- 1e5
+
+# Make it replicable
+set.seed(3)
+
+# A function to extract the number of waters in the draw
+simulate_binom <- function(probability){
+  rbinom(n_draws, size = 9, prob = probability) 
+}
+
+# A tibble with the number of waters for each of the parameter values
+data_parameter <-
+  tibble(probability = seq(from = .1, to = .9, by = .1)) %>% 
+  mutate(draws       = purrr::map(probability, simulate_binom)) %>% 
+  unnest(draws) %>% 
+  mutate(label       = str_c("p = ", probability))
+
+head(data_parameter)
+```
+
+and now let's plot the samples for each parameter value.
+
+```{r 3M3.3, fig.height = 2.5, fig.width = 10, fig.align = "left"}
+data_parameter %>%
+  ggplot(aes(x = draws)) +
+  geom_histogram(binwidth = 1, center = 0,
+                 color = "grey92", size = 1/10) +
+  scale_x_continuous(NULL, breaks = seq(from = 0, to = 9, by = 3)) +
+  scale_y_continuous(NULL, breaks = NULL) +
+  labs(subtitle = "Sampling distributions") +
+  coord_cartesian(xlim = c(0,9)) +
+  theme_minimal() +
+  facet_wrap(~ label, ncol = 9) 
+```
+
+But... Why should we use only ten possible parameter values if our grid space has a thousand steps? Let's repeat the last step but using a thousan possible values, that is, approximating better the integral form of the Posterior predictive distribution: $$p(\hat{x}|data) = \int_{\Theta} p(\hat{x}|\Theta,data) p(\Theta|data) d\Theta$$
+
+Whrere $\hat{x}$ is the sampled data, $\Theta$ the estimated parameter (percentage of water in our case) and $p(\Theta|data)$ the posterior distribution.
 
 **3M4.** Using the posterior distribution constructed from the new (8/15) data, now calculate the probability
 of observing 6 water in 9 tosses.
